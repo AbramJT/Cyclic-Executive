@@ -6,34 +6,26 @@ Ticker ticker;
 B31DGCyclicExecutiveMonitor monitor;
 
 
-#define FRAME_DURATION_MS 4     // 4ms
+#define FRAME_DURATION_MS 4
 
 
-int led_1 = 34; //output port for LED of task 1 
-int freq_1 = 32;//input port to measure task-2 frequency
-int freq_2 = 33;//input port to measure task-3 frequency
-int poten = 35;//input port to show analog frequency
-int led_2_error = 25;//output port to blink the led for error using potentiometer
+int led_1 = 34; //Output port for LED of task 1 
+int freq_1 = 32;  //Input port to measure task 2 frequency
+int freq_2 = 33;  //Input port to measure task 3 frequency
+int poten = 35; //Input port to show analog frequency
+int led_2_error = 25; //Output port for LED of task 4
 
-
-unsigned long frameTime = 0;//Initializing frameTimer
-unsigned long frameCounter = 0;//Initializing frameCounter
-unsigned int counter = 0;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
+unsigned long frameTime = 0;  //Frame Timer is set
+unsigned long frameCounter = 0; //Frame Counter is set
 
 void frame() {
-   unsigned int slot = frameCounter % 10;
+  unsigned int slot = frameCounter % 10;
    
-   unsigned long frameTime = millis();
+  unsigned long frameTime = millis();
   while ((millis() - frameTime) < FRAME_DURATION_MS) 
   {
-    // Do nothing !!!
+    
   }
-
-  // Increase frame counter and reset it after 10 frames
-
    switch (slot) {
      case 0: JobTask1();           JobTask3();           break;
      case 1: JobTask1();JobTask2();                      break;
@@ -44,203 +36,145 @@ void frame() {
      case 6: JobTask1();           JobTask3();           break;
      case 7: JobTask1();                      JobTask4();break;
      case 8: JobTask1();           JobTask3();           break;
-     case 9: JobTask1();                                       
-  }
+     case 9: JobTask1();
+     
+    //Frame count for 10 and thus after 10 frames will reset                                      
+  } 
   
-  frameCounter++; 
+  frameCounter++; //Increment
 
     
 }
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
 
 void setup(void)
 {
   monitor.startMonitoring();
   Serial.begin(9600);
-//  while(!Serial);
-//  Serial.println("Ready");
-  pinMode(led_1, OUTPUT); // output task1 led 
-  pinMode(freq_1, INPUT); // input task2 pin measure frequency
-  pinMode(freq_2, INPUT); // input task3 pin measure frequency
-  pinMode(poten, INPUT); // input task4 pin for potentiometer
-  pinMode(led_2_error, OUTPUT); // output task4 led to display error
+
+  pinMode(led_1, OUTPUT); // Task1, LED 1 output
+  pinMode(freq_1, INPUT); // Task2, Frequency input
+  pinMode(freq_2, INPUT); // Task3, Frequency input 
+  pinMode(poten, INPUT); // Task4, Potentiometer input
+  pinMode(led_2_error, OUTPUT); // Task4, LED 2 output
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-void loop(void) // Single time slot function of the Cyclic Executive (repeating)
+void loop(void) //Repeats frame
 {
-  
-frame();// TO-DO: wait the next frame  
-ticker.attach_ms(4,frame);
+  frame();
+  ticker.attach_ms(4,frame);
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-// Cyclic executive tasks
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-// Task 1, takes 1ms once  every 4ms
+//Cyclic executive Task 1, 2, 3, 4, 5
 
 void JobTask1(void) 
 {
   monitor.jobStarted(1);
   
-  //Serial.println("Task 1 Started");
-  digitalWrite(led_1, HIGH); // set pin 2 high for 200us
+  digitalWrite(led_1, HIGH); //High for 200us
   delayMicroseconds(200);
-  digitalWrite(led_1, LOW); // set pin 2 low for 50us
+  digitalWrite(led_1, LOW); //Low for 50us
   delayMicroseconds(50);
-  digitalWrite(led_1, HIGH); // set pin 2 high for 30us
+  digitalWrite(led_1, HIGH); //High for 30us
   delayMicroseconds(30);
-  digitalWrite(led_1, LOW); // set pin 2 low for remaining period
- // Serial.println("Task 1 Done");
+  digitalWrite(led_1, LOW); //Low for remaining time period
   
   monitor.jobEnded(1);
+
+  Serial.println("Task 1 Completed"); //End of Task 1
+  
 } 
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-// Task 2, takes 3ms once every 20ms
 
 void JobTask2(void) 
 {
-   monitor.jobStarted(2);
-   
-   //Serial.println("Task 2 Started");
-   //#define SAMPLES 10 // number of samples to take
-  int count = 0;
-  //for (int i = 0; i < SAMPLES; i++) 
-  //{
-    count += pulseIn(freq_1, HIGH); // measure the pulse width of the input signal
-  //}
-  count = count*2;
-  float frequency = 1000000.0 / (count); // calculate frequency in Hz
-  frequency = constrain(frequency, 333, 1000); // bound frequency between 333 and 1000 Hz
-  //int scaled_frequency = map(frequency, 333, 1000, 0, 99); // scale frequency between 0 and 99 for
- // Serial.println("Frequency_1:"); // output frequency value to serial port
-  //Serial.println(frequency); // output frequency value to serial port
-  //delayMicroseconds(800); // wait for 20ms minus the time spent in the loop
-  //Serial.println("Task 2 Done");
+  monitor.jobStarted(2);
   
-  monitor.jobEnded(2); 
+  int count_1 = 0;
+
+  count_1 = pulseIn(freq_1, HIGH); //Measure the pulse of the input
+
+  count_1 = count_1 *  2;
+  float frequency_1 = 1000000.0 / (count_1); //Calculate the frequency 
+  frequency_1 = constrain(frequency_1, 333, 1000); //Limit frequency from 333 to 1000
+  int scaled_frequency1 = map(frequency_1, 333, 1000, 0, 99); //Scale frequency between 0 and 99
+
+  monitor.jobEnded(2);
+  Serial.println("Task 2 Completed"); //End of Task 2
+  
 } 
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-// Task 3, takes 3ms once every 8ms
 
 void JobTask3(void) 
 {
   monitor.jobStarted(3);
-  //Serial.println("Task 3 Started");
-  //#define SAMPLES 8 // number of samples to take
-  int count2 = 0;
-  //for (int i = 0; i < SAMPLES; i++) {
-    count2 += pulseIn(freq_2, HIGH); // measure the pulse width of the input signal
-  //}
- count2 = count2*2;
-  float frequency2 = 1000000.0 / (count2 ); // calculate frequency in Hz
-  frequency2 = constrain(frequency2, 500, 1000); // bound frequency between 500 and 1000 Hz
-  int scaled_frequency2 = map(frequency2, 500, 1000, 0, 99); // scale frequency between 0 and 99
-  //Serial.println("Frequency_2:"); // output frequency value to serial port
-  //Serial.println(frequency2); // output frequency value to serial port
-  //delayMicroseconds(920); // wait for 8ms minus the time spent in the loop
+
+  int count_2 = 0;
+  
+  count_2 = pulseIn(freq_2, HIGH); //Measure the pulse of the input
+
+  count_2 = count_2 * 2;
+  float frequency_2 = 1000000.0 / (count_2); //Calculate the frequency
+  frequency_2 = constrain(frequency_2, 500, 1000); //Limit frequency from 500 to 1000
+  int scaled_frequency2 = map(frequency_2, 500, 1000, 0, 99); //Scale frequency between 0 and 99
+  
   monitor.jobEnded(3);
-  Serial.println("Task 3 Done");
+  Serial.println("Task 3 Completed"); //End of Task 3
+
 } 
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-// Task 4, takes 1ms once every 20ms
 
 void JobTask4(void) 
 {
   monitor.jobStarted(4);
-  Serial.println("Task 4 Started");
+  
   const int max_analog_input = 1023;
-  const int num_readings = 4;
-  int readings[num_readings];
-  int indx = 0;
-  int total = 0;
-  int fltr_val = 0;
-  for (int i = 0; i < num_readings; i++) 
+  const int readings_num = 4; 
+  int readings[readings_num];
+  int array = 0;  // Index of current readings
+  int sum = 0;  // The total run
+  int filtered_value = 0; // Average of the filtered
+  for (int i = 0; i < readings_num; i++) 
   {
   readings[i] = 0;
   }
   
-  // Read  the analog input value
-  int analogValue = analogRead(poten);
-  // Subtract the oldest reading from the total
-  total -= readings[indx];
-  // Add the new reading to the total
-  total += analogValue;
-  // Store the new reading in the readings array
-  readings[indx] = analogValue;
-  // Increment the indx
-  indx++;
-  // Wrap the indx if it exceeds the number of readings
-  if (indx >= num_readings)
-   {
-    indx = 0;
+  int analogValue = analogRead(poten);  //Read analog input
+  sum = readings[array];  //Minus the old reading from sum
+  sum = analogValue; //New reading is now added in the sum
+  readings[array] = analogValue; //New reading is now in the array
+  array++; //Increment 
+
+  if (array >= readings_num)
+  {
+    array = 0;
   }
-  // Compute the filtered value as the average of the readings
-  fltr_val = total / num_readings;
-  // If the filtered value is greater than half of the maximum range, turn on the LED
-  if (fltr_val > max_analog_input / 2) {
+  filtered_value = sum / readings_num;  //Filtered values average
+  if (filtered_value > max_analog_input / 2) {    //Filtered value will be greater than half of max range, and thus LED 2 will be HIGH or LOW
     digitalWrite(led_2_error, HIGH);
-    //Serial.println("error led HIGH");
  
   } else {
     digitalWrite(led_2_error, LOW);
-    //Serial.println("error led LOW");
-
   }
-  // Send the filtered value to the serial port
-  Serial.println(fltr_val);
-  // Delay for 20ms
-  //delay(20);
+  
+  Serial.println(filtered_value);
+  
   monitor.jobEnded(4);
-  Serial.println("Task 4 Done");//End of Task 4
+  Serial.println("Task 4 Completed"); //End of Task 4
+  
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-// Task 5, takes 1ms once every 100ms
 
 void JobTask5(void) 
 {
 
-  Serial.println("Task 5 started");//Start of Task 5
   int freq_1 = 0;
   int freq_2 = 0;
-    // Measure the frequency of Task 2 signal
-  freq_1 = pulseIn(freq_1, HIGH, 20000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 20000);
-  // Scale and bound the frequency between to 0-99
-  freq_1 = map(freq_1, 333, 1000, 0, 99);
-  // Measure the frequency of Task 3 signal
-  freq_2 = pulseIn(freq_2, HIGH, 8000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 8000);
-  // Scale and bound the frequency value between 0-99
-  freq_2 = map(freq_2, 500, 1000, 0, 99);
-  // Send the frequency values to the serial port
-  Serial.println(freq_1);//To print frequency of given waveform of Task2
-  Serial.println(freq_2);//To print frequency of given waveform of Task3
-  Serial.println("Task 5 Completed");// End of Task 5
+  
+  freq_1 = pulseIn(freq_1, HIGH, 20000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 20000); //Frequency of Task 2
+  freq_1 = map(freq_1, 333, 1000, 0, 99); //Limit and scale Task 2
+  freq_2 = pulseIn(freq_2, HIGH, 8000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 8000);  //Frequency of Task 3
+  freq_2 = map(freq_2, 500, 1000, 0, 99); //Limit and scale Task 3
+  
+  Serial.println(freq_1);
+  Serial.println(freq_2);
+  
+  Serial.println("Task 5 Completed"); //End of Task 5
 
 }
