@@ -56,12 +56,12 @@ void setup(void)
   pinMode(freq_2, INPUT); // Task3, Frequency input 
   pinMode(poten, INPUT); // Task4, Potentiometer input
   pinMode(led_2_error, OUTPUT); // Task4, LED 2 output
+  ticker.attach_ms(4,frame); //Every 4 milli seconds, ticker will call frame
 }
 
 void loop(void) //Repeats frame
 {
-  frame();
-  ticker.attach_ms(4,frame);
+
 }
 
 //Cyclic executive Task 1, 2, 3, 4, 5
@@ -95,8 +95,7 @@ void JobTask2(void)
   count_1 = count_1 *  2;
   float frequency_1 = 1000000.0 / (count_1); //Calculate the frequency 
   frequency_1 = constrain(frequency_1, 333, 1000); //Limit frequency from 333 to 1000
-  int scaled_frequency1 = map(frequency_1, 333, 1000, 0, 99); //Scale frequency between 0 and 99
-
+  
   monitor.jobEnded(2);
   Serial.println("Task 2 Completed"); //End of Task 2
   
@@ -113,7 +112,6 @@ void JobTask3(void)
   count_2 = count_2 * 2;
   float frequency_2 = 1000000.0 / (count_2); //Calculate the frequency
   frequency_2 = constrain(frequency_2, 500, 1000); //Limit frequency from 500 to 1000
-  int scaled_frequency2 = map(frequency_2, 500, 1000, 0, 99); //Scale frequency between 0 and 99
   
   monitor.jobEnded(3);
   Serial.println("Task 3 Completed"); //End of Task 3
@@ -124,9 +122,9 @@ void JobTask4(void)
 {
   monitor.jobStarted(4);
   
-  const int max_analog_input = 1023;
+  const int max_analog_input = 1023; // 1024 reflect on 10 bits of memory
   const int readings_num = 4; 
-  int readings[readings_num];
+  int readings[readings_num]; 
   int array = 0;  // Index of current readings
   int sum = 0;  // The total run
   int filtered_value = 0; // Average of the filtered
@@ -167,9 +165,9 @@ void JobTask5(void)
   int freq_1 = 0;
   int freq_2 = 0;
   
-  freq_1 = pulseIn(freq_1, HIGH, 20000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 20000); //Frequency of Task 2
+  freq_1 = pulseIn(freq_1, HIGH) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH); //Frequency of Task 2
   freq_1 = map(freq_1, 333, 1000, 0, 99); //Limit and scale Task 2
-  freq_2 = pulseIn(freq_2, HIGH, 8000) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH, 8000);  //Frequency of Task 3
+  freq_2 = pulseIn(freq_2, HIGH) == 0 ? 0 : 1000000 / pulseIn(freq_1, HIGH);  //Frequency of Task 3
   freq_2 = map(freq_2, 500, 1000, 0, 99); //Limit and scale Task 3
   
   Serial.println(freq_1);
